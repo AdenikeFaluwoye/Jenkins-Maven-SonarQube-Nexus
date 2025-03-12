@@ -1,20 +1,8 @@
-#!/bin/bash
-sudo su
-yum update –y
-wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
-rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
-amazon-linux-extras install epel -y
-amazon-linux-extras install java-openjdk11 -y
-yum install jenkins -y
-echo "jenkins ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-systemctl enable jenkins
-systemctl start jenkins
-
 # Apache Maven Installation/Config
 sudo su
 yum update -y
 sudo amazon-linux-extras install java-openjdk11 -y  # Use for Java and Maven Compiler
-sudo /usr/sbin/alternatives --config java  # NOTE: Select 4 for java11
+sudo /usr/sbin/alternatives --config java  # NOTE: Select 4 or 2 or 3 for java11
 java --version
 wget https://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
 sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo
@@ -29,21 +17,6 @@ mvn -v
 # Create ".m2" and download your "settings.xml" file into it to Authorize Maven
 ## Make sure to Update the RAW GITHUB Link to your "settings.xml" config
 mkdir /var/lib/jenkins/.m2
-wget https://raw.githubusercontent.com/awanmbandi/realworld-cicd-pipeline-project/refs/heads/jenkins-maven-sonarqube-nexus/settings.xml -P /var/lib/jenkins/.m2/
+wget https://raw.githubusercontent.com/AdenikeFaluwoye/Jenkins-Maven-SonarQube-Nexus/refs/heads/main/settings.xml -P /var/lib/jenkins/.m2/
 chown -R jenkins:jenkins /var/lib/jenkins/.m2/
 chown -R jenkins:jenkins /var/lib/jenkins/.m2/settings.xml
-
-
-# Installing Git
-yum install git -y
-
-# IMPORTANT:::::Make sure to set Java and Javac to Version 8 using the following commands
-##### Check Maven and Java Version and Confirm it's JAVA 8
-#    mvn -v
-#    java -version
-
-##### Enter the following to set Java 8 as the default runtime on your EC2 instance.
-#    sudo /usr/sbin/alternatives --config java
-
-##### Enter the following to set Java 8 as the default compiler on your EC2 instance.
-#    sudo /usr/sbin/alternatives --config javac

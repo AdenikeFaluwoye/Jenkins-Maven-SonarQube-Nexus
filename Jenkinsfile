@@ -40,7 +40,7 @@ pipeline {
     } 
     stage("Upload Artifact To Nexus"){
         steps{
-             sh 'mvn deploy'
+             sh 'mvn deploy'  
         } 
         post {
             success {
@@ -52,7 +52,7 @@ pipeline {
   post {
     always {
         echo 'Slack Notifications.'
-        slackSend channel: '#devops', //update and provide your channel name
+        slackSend channel: '#jenkins-ci-pipeline-alerts-af', //update and provide your channel name
         color: COLOR_MAP[currentBuild.currentResult],
         message: "*${currentBuild.currentResult}:* Job Name '${env.JOB_NAME}' build ${env.BUILD_NUMBER} \n Build Timestamp: ${env.BUILD_TIMESTAMP} \n Project Workspace: ${env.WORKSPACE} \n More info at: ${env.BUILD_URL}"
     }
