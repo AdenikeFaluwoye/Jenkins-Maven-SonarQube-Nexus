@@ -36,8 +36,16 @@ Pass in user data
 
 launch instance
 
-#### Step 
-Create Maven (in Jenkins) EC2 Instance
+Log into Sonarqube-- Public IP:9000
+USERNAME-admin 
+PASSWORD-admin
+
+Create project and token
+
+Copy Comand and paste in your Jenkins file
+
+#### Step 3
+Create jenkins-Maven EC2 Instance
 
 AMI - Amazon Linux 2023 24.04
 
@@ -45,6 +53,28 @@ Instance type- t2.large
 
 Open port 9000 to anywhere
 
-Pass in user data
+Pass in user data (maven-jenkins-ansible-Amazonlinux2023)
 
 launch instance
+
+copy public Ip and past on browser---- Public IP:8080
+
+ssh into instance 
+
+### To get Jenkins password
+sudo cat LINK FROM JENKINS URL 
+
+log in to Jenkins
+
+## Configure MAVEN_HOME and PATH Environment Variables
+rm .bash_profile
+wget https://raw.githubusercontent.com/awanmbandi/realworld-cicd-pipeline-project/jenkins-master-client-config/.bash_profile
+source .bash_profile
+mvn -v
+
+# Create ".m2" and download your "settings.xml" file into it to Authorize Maven
+## Make sure to Update the RAW GITHUB Link to your "settings.xml" config
+mkdir /var/lib/jenkins/.m2
+wget https://raw.githubusercontent.com/AdenikeFaluwoye/Jenkins-Maven-SonarQube-Nexus/refs/heads/main/settings.xml -P /var/lib/jenkins/.m2/
+chown -R jenkins:jenkins /var/lib/jenkins/.m2/
+chown -R jenkins:jenkins /var/lib/jenkins/.m2/settings.xml

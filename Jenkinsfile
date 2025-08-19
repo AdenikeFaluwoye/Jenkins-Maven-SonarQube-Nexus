@@ -4,7 +4,6 @@ def COLOR_MAP = [
     'UNSTABLE': 'danger'
 ]
 pipeline {
-  agent any
   stages {
     stage('Validate Project') {
         steps {
@@ -35,8 +34,8 @@ pipeline {
         steps {
             sh  """mvn sonar:sonar \
                    -Dsonar.projectKey=Java-WebApp-Project \
-                   -Dsonar.host.url=http://172.31.30.49:9000 \
-                   -Dsonar.login=57137a50c809fcb129a77a8923a54f3a9af3bdec"""
+                   -Dsonar.host.url=http://172.31.90.222:9000 \
+                   -Dsonar.login=aa1ddb8c7f1ec76af8351ec177e473116f31a8f8"""
         }
     } 
     stage("Upload Artifact To Nexus"){
