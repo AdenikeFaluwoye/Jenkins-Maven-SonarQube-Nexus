@@ -28,7 +28,7 @@ Create SonarQube EC2 Instance
 
 AMI - Ubuntu 24.04
 
-Instance type- t2.large
+Instance type- t2.medium
 
 Open port 9000 to anywhere
 
