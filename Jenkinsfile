@@ -7,6 +7,10 @@ def COLOR_MAP = [
 pipeline {
     agent any
 
+    tools {
+        jdk 'Java 11' // Must match the name in Jenkins Global Tool Configuration
+    }
+
     stages {
         stage('Validate Project') {
             steps {
@@ -42,10 +46,9 @@ pipeline {
             steps {
                 sh """
                     mvn sonar:sonar \
-                      -Dsonar.projectKey=Java-WebApp-Project \
-                      -Dsonar.host.url=http://172.31.90.222:9000 \
-                      -Dsonar.login=aa1ddb8c7f1ec76af8351ec177e473116f31a8f8 \
-                      -DargLine="--add-opens java.base/java.lang=ALL-UNNAMED"
+                        -Dsonar.projectKey=Java-WebApp-Project \
+                        -Dsonar.host.url=http://172.31.90.222:9000 \
+                        -Dsonar.login=aa1ddb8c7f1ec76af8351ec177e473116f31a8f8
                 """
             }
         }
@@ -66,7 +69,7 @@ pipeline {
         always {
             echo 'Slack Notifications.'
             slackSend(
-                channel: '#jenkins-ci-pipeline-alerts-af', // update to your Slack channel
+                channel: '#jenkins-ci-pipeline-alerts-af', // Update with your Slack channel
                 color: COLOR_MAP[currentBuild.currentResult],
                 message: "*${currentBuild.currentResult}:* Job Name '${env.JOB_NAME}' build ${env.BUILD_NUMBER} \n Build Timestamp: ${env.BUILD_TIMESTAMP} \n Project Workspace: ${env.WORKSPACE} \n More info at: ${env.BUILD_URL}"
             )
