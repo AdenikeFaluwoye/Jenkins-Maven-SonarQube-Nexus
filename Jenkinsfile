@@ -50,19 +50,18 @@ pipeline {
 
         stage('SonarQube Inspection') {
             steps {
-                script {
-                    // Override Java for SonarQube scan to Java 11
-                    echo "Setting JAVA_HOME to Java 11 for SonarQube scan"
-                    env.JAVA_HOME = "/usr/lib/jvm/java-11-amazon-corretto.x86_64"
-                    env.PATH = "${env.JAVA_HOME}/bin:${env.PATH}"
+                withEnv([
+                    "JAVA_HOME=/usr/lib/jvm/java-11-amazon-corretto.x86_64",
+                    "PATH=/usr/lib/jvm/java-11-amazon-corretto.x86_64/bin:${env.PATH}"
+                ]) {
+                    echo "Running SonarQube scan with Java 11..."
+                    sh """
+                        mvn sonar:sonar \
+                            -Dsonar.projectKey=Java-WebApp-Project \
+                            -Dsonar.host.url=http://172.31.88.198:9000 \
+                            -Dsonar.login=5a607eb15f33b2508b9ac3390b8109a33da2866d
+                    """
                 }
-                echo "Running SonarQube scan..."
-                sh """
-                    mvn sonar:sonar \
-                        -Dsonar.projectKey=Java-WebApp-Project \
-                        -Dsonar.host.url=http://172.31.88.198:9000 \
-                        -Dsonar.login=5a607eb15f33b2508b9ac3390b8109a33da2866d
-                """
             }
         }
 
