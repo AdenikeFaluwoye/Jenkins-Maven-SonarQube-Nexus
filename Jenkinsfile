@@ -7,11 +7,11 @@ def COLOR_MAP = [
 pipeline {
     agent any
     environment {
-        MAVEN_HOME = '/opt/maven'                            // your Maven installation
-        PATH = "${MAVEN_HOME}/bin:${env.PATH}"               // ensures 'mvn' command is visible
+        MAVEN_HOME = '/opt/maven'                              // your Maven installation
+        PATH = "${MAVEN_HOME}/bin:${env.PATH}"                 // ensures 'mvn' command is visible
         JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto.x86_64' // Java for Maven build
     }
-    
+
     stages {
         stage('Validate Project') {
             steps {
