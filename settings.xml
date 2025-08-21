@@ -60,7 +60,7 @@ under the License.
        <repository>
          <id>nexus-snapshot-repo</id>
          <name>your custom repo</name>
-         <url>http://172.31.41.119:8081/repository/Java-WebApp-Snapshot/</url>
+         <url>http://172.31.83.162:8081/repository/Java-WebApp-Project-Snapshot/</url>
        </repository>
 	   
      </repositories>
@@ -71,7 +71,7 @@ under the License.
        <repository>
          <id>nexus-release-repo</id>
          <name>your custom repo</name>
-         <url>http://172.31.41.119:8081/repository/Java-WebApp-Release/</url>
+         <url>http://172.31.83.162:8081/repository/Java-WebApp-Release/</url>
        </repository>
      </repositories>
    </profile>

@@ -5,10 +5,7 @@ def COLOR_MAP = [
 ]
 
 pipeline {
-    agent {
-        label 'Maven-Build-Env' // Use the Maven slave node for this pipeline
-    }
-
+    agent any
     environment {
         // Set Java 17 as default for Jenkins and Maven build
         JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto.x86_64'
@@ -62,9 +59,9 @@ pipeline {
                 echo "Running SonarQube scan..."
                 sh """
                     mvn sonar:sonar \
-                        -Dsonar.projectKey=Maven-JavaWebApp \
-                        -Dsonar.host.url=http://172.31.22.101:9000 \
-                        -Dsonar.login=ed7f1ae74cf8b693cadbd47043d4b9ed5ef50913
+                        -Dsonar.projectKey=Java-WebApp-Project \
+                        -Dsonar.host.url=http://172.31.88.198:9000 \
+                        -Dsonar.login=5a607eb15f33b2508b9ac3390b8109a33da2866d
                 """
             }
         }

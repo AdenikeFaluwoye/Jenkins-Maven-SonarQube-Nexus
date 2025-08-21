@@ -66,16 +66,9 @@ sudo cat LINK FROM JENKINS URL
 
 log in to Jenkins
 
-### Install Maven
-sudo dnf update -y
-sudo dnf install maven -y
-mvn -version
+Add neccessary plugins; slack, blue Ocean, Pipeline stage view
 
-## Configure MAVEN_HOME and PATH Environment Variables
-rm .bash_profile
-wget https://raw.githubusercontent.com/awanmbandi/realworld-cicd-pipeline-project/jenkins-master-client-config/.bash_profile
-source .bash_profile
-mvn -v
+Intergrate slack with Jenkins
 
 # Create ".m2" and download your "settings.xml" file into it to Authorize Maven
 ## Make sure to Update the RAW GITHUB Link to your "settings.xml" config
