@@ -7,14 +7,11 @@ def COLOR_MAP = [
 pipeline {
     agent any
 
-    options {
-        skipStagesAfterUnstable()
-    }
-
     environment {
         MAVEN_HOME = '/opt/maven'
         PATH = "${MAVEN_HOME}/bin:${env.PATH}"
-        JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto.x86_64' // Java 17 for all stages
+        JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto.x86_64'
+        MAVEN_OPTS = '--add-opens java.base/java.lang=ALL-UNNAMED' // Allows Sonar to work with Java 17
     }
 
     stages {
@@ -43,10 +40,6 @@ pipeline {
             steps {
                 echo "Packaging the application..."
                 sh 'mvn package'
-
-                // Archive artifact in Jenkins workspace even if later stages fail
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-                echo "Artifact archived in Jenkins workspace."
             }
         }
 
@@ -59,9 +52,9 @@ pipeline {
 
         stage('SonarQube Inspection') {
             steps {
-                echo "Running SonarQube scan with Java 17 using compatible scanner..."
+                echo "Running SonarQube scan with Java 17..."
                 sh """
-                    mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
+                    mvn sonar:sonar \
                         -Dsonar.projectKey=Java-WebApp-Project \
                         -Dsonar.host.url=http://172.31.80.181:9000 \
                         -Dsonar.login=eb9fdec1b30562172f674ba3d96c553ef2513e28
