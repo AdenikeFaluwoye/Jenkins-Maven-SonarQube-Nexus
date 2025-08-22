@@ -92,9 +92,14 @@ Under General
  Under Triggers
   ---select GitHub hook trigger for GITScm polling
 
-Under Definition 
- ---select Pipeline script
-     GitHub+Maven
+Under Pipeline >>> Definition 
+ ---select  Pipeline script from SCM
+Under SCM
+ --- Select Git
+Paste the project repository URL under repositories 
+No credential needed since the Repository is public.
+Under Branches to build
+ --- Select */main
 
 Apply the save
 
