@@ -14,7 +14,7 @@ pipeline {
     environment {
         MAVEN_HOME = '/opt/maven'
         PATH = "${MAVEN_HOME}/bin:${env.PATH}"
-        JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto.x86_64' // Java 17 for build
+        JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto.x86_64' // Java 17 for all stages
     }
 
     stages {
@@ -59,18 +59,13 @@ pipeline {
 
         stage('SonarQube Inspection') {
             steps {
-                withEnv([
-                    "JAVA_HOME=/usr/lib/jvm/java-11-amazon-corretto.x86_64",
-                    "PATH=/usr/lib/jvm/java-11-amazon-corretto.x86_64/bin:${env.PATH}"
-                ]) {
-                    echo "Running SonarQube scan with Java 17..."
-                    sh """
-                        mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
-                            -Dsonar.projectKey=Java-WebApp-Project \
-                            -Dsonar.host.url=http://172.31.80.181:9000 \
-                            -Dsonar.login=eb9fdec1b30562172f674ba3d96c553ef2513e28
-                    """
-                }
+                echo "Running SonarQube scan with Java 17 using compatible scanner..."
+                sh """
+                    mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
+                        -Dsonar.projectKey=Java-WebApp-Project \
+                        -Dsonar.host.url=http://172.31.80.181:9000 \
+                        -Dsonar.login=eb9fdec1b30562172f674ba3d96c553ef2513e28
+                """
             }
         }
 
