@@ -6,9 +6,10 @@ def COLOR_MAP = [
 
 pipeline {
     agent any
+
     environment {
-        MAVEN_HOME = '/opt/maven'                              // your Maven installation
-        PATH = "${MAVEN_HOME}/bin:${env.PATH}"                 // ensures 'mvn' command is visible
+        MAVEN_HOME = '/opt/maven'                              // Path to Maven installation
+        PATH = "${MAVEN_HOME}/bin:${env.PATH}"                 // Ensure mvn is available
         JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto.x86_64' // Java for Maven build
     }
 
@@ -58,8 +59,8 @@ pipeline {
                     sh """
                         mvn sonar:sonar \
                             -Dsonar.projectKey=Java-WebApp-Project \
-                            -Dsonar.host.url=http://172.31.88.198:9000 \
-                            -Dsonar.login=5a607eb15f33b2508b9ac3390b8109a33da2866d
+                            -Dsonar.host.url=http://172.31.80.181:9000 \
+                            -Dsonar.login=eb9fdec1b30562172f674ba3d96c553ef2513e28
                     """
                 }
             }
@@ -83,11 +84,14 @@ pipeline {
 
     post {
         always {
-            echo 'Slack Notifications.'
+            echo 'Sending Slack Notification...'
             slackSend(
                 channel: '#jenkins-ci-pipeline-alerts-af', // Update with your Slack channel
                 color: COLOR_MAP[currentBuild.currentResult],
-                message: "*${currentBuild.currentResult}:* Job Name '${env.JOB_NAME}' build ${env.BUILD_NUMBER}\nBuild Timestamp: ${env.BUILD_TIMESTAMP}\nProject Workspace: ${env.WORKSPACE}\nMore info at: ${env.BUILD_URL}"
+                message: "*${currentBuild.currentResult}:* Job Name '${env.JOB_NAME}' build ${env.BUILD_NUMBER}\n" +
+                         "Build Timestamp: ${env.BUILD_TIMESTAMP}\n" +
+                         "Project Workspace: ${env.WORKSPACE}\n" +
+                         "More info at: ${env.BUILD_URL}"
             )
         }
     }
