@@ -20,7 +20,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/your-username/your-repo.git'
+                    url: 'https://github.com/AdenikeFaluwoye/Jenkins-Maven-SonarQube-Nexus.git
+'
             }
         }
 
