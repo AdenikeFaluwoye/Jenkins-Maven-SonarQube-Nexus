@@ -1,77 +1,98 @@
+def COLOR_MAP = [
+    'SUCCESS': 'good',
+    'FAILURE': 'danger',
+    'UNSTABLE': 'danger'
+]
+
 pipeline {
     agent any
 
     environment {
         MAVEN_HOME = '/opt/maven'
-        JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto'
-        PATH+EXTRA = "${MAVEN_HOME}/bin:${JAVA_HOME}/bin"
-        SLACK_CHANNEL = 'jenkins-ci-pipeline-alerts-af'
-        SLACK_CREDENTIAL_ID = 'your-slack-credential-id'
+        PATH = "${MAVEN_HOME}/bin:${env.PATH}"
+        JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto.x86_64'
+        MAVEN_OPTS = '--add-opens java.base/java.lang=ALL-UNNAMED' // Allows Sonar to work with Java 17
     }
 
     stages {
-        stage('Checkout') {
+        stage('Validate Project') {
             steps {
-                git url: 'https://github.com/AdenikeFaluwoye/Jenkins-Maven-SonarQube-Nexus.git', branch: 'main'
-            }
-        }
-
-        stage('Validate') {
-            steps {
+                echo "Validating project..."
                 sh 'mvn validate'
             }
         }
 
-        stage('Compile') {
+        stage('Unit Test') {
             steps {
-                sh 'mvn compile'
-            }
-        }
-
-        stage('Test') {
-            steps {
+                echo "Running unit tests..."
                 sh 'mvn test'
             }
         }
 
-        stage('Package') {
+        stage('Integration Test') {
             steps {
+                echo "Running integration tests..."
+                sh 'mvn verify -DskipUnitTests'
+            }
+        }
+
+        stage('App Packaging') {
+            steps {
+                echo "Packaging the application..."
                 sh 'mvn package'
             }
         }
 
-        stage('SonarQube Analysis') {
-            environment {
-                SONAR_HOST_URL = 'http://your-sonarqube-server:9000'
-                SONAR_LOGIN = credentials('your-sonar-token-id')
-            }
+        stage('Checkstyle Code Analysis') {
             steps {
-                sh 'mvn sonar:sonar -Dsonar.projectKey=your-project-key -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN'
+                echo "Running Checkstyle code analysis..."
+                sh 'mvn checkstyle:checkstyle'
             }
         }
 
-        stage('Deploy to Nexus') {
+        stage('SonarQube Inspection') {
+            environment {
+                // Override JAVA_HOME to Java 11 for SonarQube
+                JAVA_HOME = '/usr/lib/jvm/java-11-amazon-corretto.x86_64'
+                PATH = "${JAVA_HOME}/bin:${env.PATH}"
+            }
             steps {
+                echo "Running SonarQube scan with Java 11..."
+                sh """
+                    mvn sonar:sonar \
+                        -Dsonar.projectKey=Java-WebApp-Project \
+                        -Dsonar.host.url=http://172.31.80.181:9000 \
+                        -Dsonar.login=eb9fdec1b30562172f674ba3d96c553ef2513e28
+                """
+            }
+        }
+
+        stage("Upload Artifact To Nexus") {
+            steps {
+                echo "Uploading artifact to Nexus..."
                 sh 'mvn deploy'
+            }
+            post {
+                success {
+                    echo 'Successfully uploaded artifact to Nexus Artifactory'
+                }
+                failure {
+                    echo 'Failed to upload artifact to Nexus Artifactory'
+                }
             }
         }
     }
 
     post {
-        success {
+        always {
+            echo 'Sending Slack Notification...'
             slackSend(
-                channel: "${SLACK_CHANNEL}",
-                color: 'good',
-                message: "✅ Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                tokenCredentialId: "${SLACK_CREDENTIAL_ID}"
-            )
-        }
-        failure {
-            slackSend(
-                channel: "${SLACK_CHANNEL}",
-                color: 'danger',
-                message: "❌ Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                tokenCredentialId: "${SLACK_CREDENTIAL_ID}"
+                channel: '#jenkins-ci-pipeline-alerts-af',
+                color: COLOR_MAP[currentBuild.currentResult],
+                message: "*${currentBuild.currentResult}:* Job Name '${env.JOB_NAME}' build ${env.BUILD_NUMBER}\n" +
+                         "Build Timestamp: ${env.BUILD_TIMESTAMP}\n" +
+                         "Project Workspace: ${env.WORKSPACE}\n" +
+                         "More info at: ${env.BUILD_URL}"
             )
         }
     }
