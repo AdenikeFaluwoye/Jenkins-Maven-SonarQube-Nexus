@@ -22,9 +22,9 @@ Log in and create new password
 
 create a repository for release and snapshot under Maven2 Hosted(or a required type)
 
-Copy the repository names and update them in the settings.xml and pom.xml files
+Copy the repository names and update them in Jenkins Credential
 
-Copy the Public IP and update them in the settings.xml and pom.xml files
+Copy the Public IP of the instance and update them in Jenkins Credential
 
 #### Step 2
 Create SonarQube EC2 Instance
@@ -45,12 +45,12 @@ PASSWORD-admin
 
 Create project and token
 
-Copy Sonar scanner command and paste in your Jenkins file (Replace the public Ip here with the PrivateIP:9000)
+Copy Sonar token and needed details, sonarQube public IP and paste in your Jenkins Credential
 
 #### Step 3
 Create jenkins-Maven EC2 Instance
 
-AMI - Amazon Linux 2023 24.04 
+AMI - Amazon Linux 2023
 
 Instance type- t2.large
 

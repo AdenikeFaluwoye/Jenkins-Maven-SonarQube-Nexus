@@ -1,20 +1,27 @@
-def COLOR_MAP = [
-    'SUCCESS': 'good',
-    'FAILURE': 'danger',
-    'UNSTABLE': 'danger'
-]
-
 pipeline {
     agent any
 
     environment {
+        // System paths
         MAVEN_HOME = '/opt/maven'
-        PATH = "${MAVEN_HOME}/bin:${env.PATH}"
-        JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto.x86_64'
-        MAVEN_OPTS = '--add-opens java.base/java.lang=ALL-UNNAMED' // Allows Sonar to work with Java 17
+        JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto'
+        PATH+EXTRA = "${MAVEN_HOME}/bin:${JAVA_HOME}/bin"
+
+        // Credentials from Jenkins
+        NEXUS_HOST = credentials('NEXUS_HOST')
+        NEXUS_USER = credentials('NEXUS_USER')
+        NEXUS_PASS = credentials('NEXUS_PASS')
+        SONAR_TOKEN = credentials('SONAR_TOKEN')
     }
 
     stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your/repo.git'
+            }
+        }
+
         stage('Validate Project') {
             steps {
                 echo "Validating project..."
@@ -22,73 +29,48 @@ pipeline {
             }
         }
 
-        stage('Unit Test') {
+        stage('Build') {
             steps {
-                echo "Running unit tests..."
+                echo "Building project..."
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "Running tests..."
                 sh 'mvn test'
             }
         }
 
-        stage('Integration Test') {
-            steps {
-                echo "Running integration tests..."
-                sh 'mvn verify -DskipUnitTests'
+        stage('SonarQube Analysis') {
+            environment {
+                SONAR_HOST_URL = 'http://<SonarQube-private-IP>:9000'  // replace with your private IP
+                JAVA_HOME = '/usr/lib/jvm/java-11-amazon-corretto'     // override for Sonar if needed
+                PATH+EXTRA = "${JAVA_HOME}/bin:${env.PATH}"            // ensure Java 11 is used
             }
-        }
-
-        stage('App Packaging') {
             steps {
-                echo "Packaging the application..."
-                sh 'mvn package'
-            }
-        }
-
-        stage('Checkstyle Code Analysis') {
-            steps {
-                echo "Running Checkstyle code analysis..."
-                sh 'mvn checkstyle:checkstyle'
-            }
-        }
-
-        stage('SonarQube Inspection') {
-            steps {
-                echo "Running SonarQube scan with Java 17..."
-                sh """
-                    mvn sonar:sonar \
-                        -Dsonar.projectKey=Java-WebApp-Project \
-                        -Dsonar.host.url=http://172.31.80.181:9000 \
-                        -Dsonar.login=eb9fdec1b30562172f674ba3d96c553ef2513e28
-                """
-            }
-        }
-
-        stage("Upload Artifact To Nexus") {
-            steps {
-                echo "Uploading artifact to Nexus..."
-                sh 'mvn deploy'
-            }
-            post {
-                success {
-                    echo 'Successfully uploaded artifact to Nexus Artifactory'
+                withSonarQubeEnv('sonar') {
+                    sh 'java -version'   // confirm correct Java version
+                    sh 'mvn sonar:sonar -Dsonar.token=$SONAR_TOKEN -Dsonar.host.url=$SONAR_HOST_URL'
                 }
-                failure {
-                    echo 'Failed to upload artifact to Nexus Artifactory'
-                }
+            }
+        }
+
+        stage('Deploy to Nexus') {
+            steps {
+                echo "Deploying artifact to Nexus..."
+                sh 'mvn deploy -DskipTests'
             }
         }
     }
 
     post {
-        always {
-            echo 'Sending Slack Notification...'
-            slackSend(
-                channel: '#jenkins-ci-pipeline-alerts-af',
-                color: COLOR_MAP[currentBuild.currentResult],
-                message: "*${currentBuild.currentResult}:* Job Name '${env.JOB_NAME}' build ${env.BUILD_NUMBER}\n" +
-                         "Build Timestamp: ${env.BUILD_TIMESTAMP}\n" +
-                         "Project Workspace: ${env.WORKSPACE}\n" +
-                         "More info at: ${env.BUILD_URL}"
-            )
+        success {
+            echo " Build & deployment successful!"
+        }
+        failure {
+            echo " Build failed!"
         }
     }
 }
