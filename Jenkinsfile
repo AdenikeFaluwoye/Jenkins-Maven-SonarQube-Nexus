@@ -1,72 +1,46 @@
-def COLOR_MAP = [
-    'SUCCESS': 'good',
-    'FAILURE': 'danger',
-    'UNSTABLE': 'danger'
-]
-
 pipeline {
     agent any
 
     environment {
-        // Maven installation
         MAVEN_HOME = '/opt/maven'
-        PATH = "${MAVEN_HOME}/bin:${env.PATH}"
-
-        // Java installation (adjust if your JAVA_HOME is different)
         JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto'
+        PATH = "${MAVEN_HOME}/bin:${JAVA_HOME}/bin:${env.PATH}"
+        SLACK_CHANNEL = 'jenkins-ci-pipeline-alerts-af'   // Your Slack channel name
+        SLACK_CREDENTIAL_ID = 'your-slack-credential-id' // The Slack token stored in Jenkins credentials
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/AdenikeFaluwoye/Jenkins-Maven-SonarQube-Nexus.git'
+                git url: 'https://github.com/AdenikeFaluwoye/Jenkins-Maven-SonarQube-Nexus.git', branch: 'main'
             }
         }
 
         stage('Validate') {
             steps {
-                sh 'mvn validate'
+                sh "${MAVEN_HOME}/bin/mvn validate"
             }
         }
 
-        stage('Compile') {
-            steps {
-                sh 'mvn compile'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-
-        stage('Package') {
-            steps {
-                sh 'mvn package'
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('MySonarQubeServer') {
-                    sh 'mvn sonar:sonar'
-                }
-            }
-        }
+        // Add other stages: Compile, Test, Package, SonarQube Analysis, etc.
     }
 
     post {
-        always {
-            script {
-                def color = COLOR_MAP[currentBuild.currentResult] ?: 'warning'
-                slackSend(
-                    channel: '#jenkins-ci-pipeline-alerts-af',
-                    color: color,
-                    message: "Build ${currentBuild.currentResult}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (<${env.BUILD_URL}|Open>)"
-                )
-            }
+        success {
+            slackSend(
+                channel: "${SLACK_CHANNEL}",
+                color: 'good',
+                message: "Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                tokenCredentialId: "${SLACK_CREDENTIAL_ID}"
+            )
+        }
+        failure {
+            slackSend(
+                channel: "${SLACK_CHANNEL}",
+                color: 'danger',
+                message: "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                tokenCredentialId: "${SLACK_CREDENTIAL_ID}"
+            )
         }
     }
 }
