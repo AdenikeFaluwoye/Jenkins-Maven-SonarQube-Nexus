@@ -12,8 +12,7 @@ pipeline {
         NEXUS_USER = credentials('NEXUS_USER')
         NEXUS_PASS = credentials('NEXUS_PASS')
         SONAR_TOKEN = credentials('SONAR_TOKEN')
-
-        // Slack webhook URL stored as Jenkins credential
+        GITHUB_CREDENTIALS = 'GITHUB_CREDENTIALS'   // ID of your GitHub PAT credential
         SLACK_WEBHOOK = credentials('SLACK_WEBHOOK')
     }
 
@@ -22,7 +21,9 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Checking out code..."
-                git branch: 'main', url: 'https://github.com/your/repo.git'
+                git branch: 'main', 
+                    url: 'https://github.com/AdenikeFaluwoye/Jenkins-Maven-SonarQube-Nexus.git', 
+                    credentialsId: "${GITHUB_CREDENTIALS}"
             }
         }
 
@@ -36,7 +37,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Building project..."
-                sh 'mvn -v'                // verify Maven & Java
+                sh 'mvn -v'   // verify Maven & Java
                 sh 'mvn clean package -DskipTests'
             }
         }
@@ -71,15 +72,23 @@ pipeline {
     post {
         success {
             echo " Build & deployment successful!"
-            sh """
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ Jenkins Build Successful: ${JOB_NAME} #${BUILD_NUMBER}"}' $SLACK_WEBHOOK
-            """
+            withCredentials([string(credentialsId: 'SLACK_WEBHOOK', variable: 'WEBHOOK')]) {
+                sh """
+                curl -X POST -H 'Content-type: application/json' \
+                --data '{"text":" Jenkins Build Successful: ${JOB_NAME} #${BUILD_NUMBER}"}' \
+                $WEBHOOK
+                """
+            }
         }
         failure {
             echo " Build failed!"
-            sh """
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ Jenkins Build Failed: ${JOB_NAME} #${BUILD_NUMBER}"}' $SLACK_WEBHOOK
-            """
+            withCredentials([string(credentialsId: 'SLACK_WEBHOOK', variable: 'WEBHOOK')]) {
+                sh """
+                curl -X POST -H 'Content-type: application/json' \
+                --data '{"text":" Jenkins Build Failed: ${JOB_NAME} #${BUILD_NUMBER}"}' \
+                $WEBHOOK
+                """
+            }
         }
     }
 }

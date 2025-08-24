@@ -142,3 +142,45 @@ Go to Jenkins Home page ---> Click on your project ---> Build Now
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Create a Personal Access Token (PAT) on GitHub
+
+Go to GitHub → Settings → Developer Settings → Personal Access Tokens → Tokens (classic) → Generate new token.
+
+Select scopes:
+
+repo (full control of private repositories)
+
+workflow (optional if you use GitHub Actions)
+
+Copy the generated token. Keep it safe — you won’t see it again.
+
+Note: For a public repo, you don’t actually need this token, but this is how you would handle private repos.
+
+Step 2: Add the token to Jenkins
+
+Go to Jenkins → Manage Jenkins → Credentials → System → Global credentials → Add Credentials.
+
+Choose Kind: Username with password:
+
+Username: your GitHub username
+
+Password: your PAT
+
+ID: GITHUB_CREDENTIALS (this ID is how you reference it in Jenkinsfile)
+
+Click OK.
