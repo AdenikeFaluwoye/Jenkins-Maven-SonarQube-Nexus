@@ -4,9 +4,9 @@ pipeline {
     environment {
         MAVEN_HOME = '/opt/maven'
         JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto'
-        PATH = "${MAVEN_HOME}/bin:${JAVA_HOME}/bin:${env.PATH}"
-        SLACK_CHANNEL = 'jenkins-ci-pipeline-alerts-af'   // Your Slack channel name
-        SLACK_CREDENTIAL_ID = 'your-slack-credential-id' // The Slack token stored in Jenkins credentials
+        PATH+EXTRA = "${MAVEN_HOME}/bin:${JAVA_HOME}/bin"
+        SLACK_CHANNEL = 'jenkins-ci-pipeline-alerts-af'
+        SLACK_CREDENTIAL_ID = 'your-slack-credential-id'
     }
 
     stages {
@@ -18,11 +18,43 @@ pipeline {
 
         stage('Validate') {
             steps {
-                sh "${MAVEN_HOME}/bin/mvn validate"
+                sh 'mvn validate'
             }
         }
 
-        // Add other stages: Compile, Test, Package, SonarQube Analysis, etc.
+        stage('Compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            environment {
+                SONAR_HOST_URL = 'http://your-sonarqube-server:9000'
+                SONAR_LOGIN = credentials('your-sonar-token-id')
+            }
+            steps {
+                sh 'mvn sonar:sonar -Dsonar.projectKey=your-project-key -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN'
+            }
+        }
+
+        stage('Deploy to Nexus') {
+            steps {
+                sh 'mvn deploy'
+            }
+        }
     }
 
     post {
@@ -30,7 +62,7 @@ pipeline {
             slackSend(
                 channel: "${SLACK_CHANNEL}",
                 color: 'good',
-                message: "Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                message: "✅ Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 tokenCredentialId: "${SLACK_CREDENTIAL_ID}"
             )
         }
@@ -38,7 +70,7 @@ pipeline {
             slackSend(
                 channel: "${SLACK_CHANNEL}",
                 color: 'danger',
-                message: "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                message: "❌ Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 tokenCredentialId: "${SLACK_CREDENTIAL_ID}"
             )
         }
